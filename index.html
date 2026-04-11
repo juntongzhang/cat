@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>喵星人灵魂测试 | 你是哪种猫咪？</title>
+    <style>
+        :root {
+            /* 治愈系猫猫配色 */
+            --primary: #f8b195;     /* 软软的肉垫粉 */
+            --primary-dark: #f67280;
+            --accent: #ffb5b5;      /* 高亮粉 */
+            --bg-base: #fff7f5;     /* 奶黄色背景 */
+            --card-bg: #ffffff;
+            --text-main: #5d5d5a;   /* 柔和的深灰色 */
+            --text-sub: #9e9e9c;
+            --border: #fce4ec;
+            --font-rounded: "Nunito", "Varela Round", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-rounded);
+            background: var(--bg-base);
+            /* 浅淡的猫爪印背景 */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20,45 C15,45 10,40 10,35 C10,30 15,25 20,25 C25,25 30,30 30,35 C30,40 25,45 20,45 Z M80,45 C75,45 70,40 70,35 C70,30 75,25 80,25 C85,25 90,30 90,35 C90,40 85,45 80,45 Z M35,25 C30,25 25,20 25,15 C25,10 30,5 35,5 C40,5 45,10 45,15 C45,20 40,25 35,25 Z M65,25 C60,25 55,20 55,15 C55,10 60,5 65,5 C70,5 75,10 75,15 C75,20 70,25 65,25 Z M50,85 C35,85 25,75 25,60 C25,50 35,45 50,45 C65,45 75,50 75,60 C75,75 65,85 50,85 Z' fill='%23f8b195' fill-opacity='0.1'/%3E%3C/svg%3E");
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            box-shadow: 0 0 30px rgba(248, 177, 149, 0.2);
+        }
+
+        /* 动画定义 */
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .bounce-in { animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounceIn { 
+            0% { transform: scale(0.8); opacity: 0; } 
+            50% { transform: scale(1.05); opacity: 0.8; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* ---------------- 封面 ---------------- */
+        #page-intro {
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .intro-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 3s infinite ease-in-out;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .intro-title {
+            font-size: 36px;
+            margin: 0 0 15px;
+            font-weight: 900;
+            color: var(--primary-dark);
+            letter-spacing: 2px;
+        }
+        
+        .intro-sub {
+            font-size: 16px;
+            color: var(--text-sub);
+            line-height: 1.8;
+            margin-bottom: 40px;
+            padding: 0 20px;
+            font-weight: bold;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 16px 45px;
+            font-size: 20px;
+            font-family: inherit;
+            font-weight: 800;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(246, 114, 128, 0.3);
+        }
+        .btn-start:active { transform: scale(0.92); }
+
+        /* ---------------- 测试页 ---------------- */
+        #page-test {
+            display: none;
+            flex-direction: column;
+            padding: 30px 24px;
+            min-height: 100vh;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: var(--border);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .q-content { flex: 1; display: flex; flex-direction: column; }
+        
+        .q-text {
+            font-size: 19px;
+            line-height: 1.6;
+            margin-bottom: 35px;
+            color: var(--text-main);
+            min-height: 80px;
+            font-weight: 800;
+        }
+
+        .options-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .opt-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            font-size: 15px;
+            color: var(--text-main);
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            line-height: 1.5;
+        }
+        .opt-btn:hover { 
+            border-color: var(--primary); 
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(248, 177, 149, 0.2);
+        }
+        .opt-btn:active { transform: scale(0.98); background: var(--bg-base); }
+        .opt-icon { font-size: 20px; opacity: 0.5; transition: 0.2s; min-width: 25px; text-align: right;}
+        .opt-btn:hover .opt-icon { opacity: 1; transform: scale(1.2); }
+
+        .nav-btns {
+            margin-top: auto;
+            padding-top: 25px;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-back {
+            background: none; border: none;
+            color: var(--text-sub);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px;
+            text-decoration: underline;
+        }
+
+        /* ---------------- Loading/过场动画 ---------------- */
+        #page-loading {
+            display: none; height: 100vh; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .magic-cloud-scene {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .magic-cloud {
+            font-size: 90px;
+            z-index: 2;
+            position: relative;
+            animation: floatCloud 2s infinite ease-in-out;
+            text-shadow: 0 15px 25px rgba(246, 114, 128, 0.2);
+        }
+        .magic-cat {
+            font-size: 60px;
+            position: absolute;
+            bottom: 30px;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(40px) scale(0.5);
+        }
+        /* JS 控制触发这个钻出动画 */
+        .magic-cat.pop-out {
+            animation: catPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .magic-stars {
+            position: absolute;
+            font-size: 35px;
+            top: -10px;
+            right: -10px;
+            z-index: 3;
+            opacity: 0;
+        }
+        .magic-stars.twinkle {
+            animation: twinkle 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatCloud {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes catPop {
+            0% { opacity: 0; transform: translateY(40px) scale(0.5) rotate(-10deg); }
+            60% { opacity: 1; transform: translateY(-45px) scale(1.1) rotate(5deg); }
+            100% { opacity: 1; transform: translateY(-35px) scale(1) rotate(0deg); }
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+            100% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+        }
+
+        /* ---------------- 结果页 ---------------- */
+        #page-result {
+            display: none;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        .res-header {
+            padding: 50px 30px 40px;
+            text-align: center;
+            background: transparent;
+            position: relative;
+        }
+        
+        .res-title { 
+            font-size: 26px; 
+            margin: 10px 0 5px; 
+            color: var(--primary-dark); 
+            font-weight: 900; 
+            letter-spacing: 1px;
+        }
+        .res-subtitle { font-size: 15px; color: var(--accent); margin-bottom: 20px; font-weight: bold; letter-spacing: 1px;}
+        
+        /* 新增图片样式 */
+        .res-image {
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            border-radius: 20px;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 10px 25px rgba(248, 177, 149, 0.4);
+            object-fit: cover;
+            border: 4px solid #fff;
+            background: rgba(255,255,255,0.5); /* 图片未加载时的浅色底 */
+        }
+
+        .res-quote {
+            font-size: 16px;
+            color: var(--text-main);
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-weight: bold;
+            border: 1px dashed var(--accent);
+        }
+
+        .res-tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .tag { 
+            padding: 6px 14px; 
+            font-size: 13px; 
+            background: var(--primary); 
+            color: #fff; 
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(246, 114, 128, 0.2);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            margin: 20px 20px 0;
+            padding: 30px 25px;
+            border-radius: 24px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+            border: 1px solid #fff;
+        }
+        .card-title {
+            font-size: 19px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: var(--primary-dark);
+        }
+
+        .desc-text {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-main);
+            text-align: justify;
+        }
+
+        /* 科普版块样式 */
+        .lore-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-sub);
+            text-align: justify;
+            background: rgba(248, 177, 149, 0.1);
+            padding: 18px;
+            border-radius: 16px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .radar-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 1. 封面 -->
+<div id="page-intro" class="container">
+    <div class="intro-icon">🐈</div>
+    <h1 class="intro-title">喵星人灵魂测试</h1>
+    <p class="intro-sub">
+        如果平行宇宙的你是一只猫<br>
+        你会是什么品种？<br>
+        20道魔法碎片，测出你的隐藏猫型人格
+    </p>
+    <button class="btn-start" onclick="startTest()">🐾 伸出猫爪</button>
+</div>
+
+<!-- 2. 测试页 -->
+<div id="page-test" class="container">
+    <div class="status-bar">
+        <span>魔药收集 <span id="q-counter">1</span> / 20</span>
+        <span>Meow Personality</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-fill" id="progress-bar"></div>
+    </div>
+
+    <div class="q-content" id="q-box">
+        <div class="q-text" id="q-text">加载中...</div>
+        <div class="options-list" id="opt-list"></div>
+    </div>
+
+    <div class="nav-btns">
+        <button class="btn-back" id="btn-back" onclick="prevQ()">撤回猫爪上一步</button>
+    </div>
+</div>
+
+<!-- 3. Loading / 魔法过场动画 -->
+<div id="page-loading" class="container">
+    <div class="magic-cloud-scene">
+        <div class="magic-cat" id="magic-cat">🐱</div>
+        <div class="magic-cloud">☁️</div>
+        <div class="magic-stars" id="magic-stars">✨</div>
+    </div>
+    <p style="margin-top:20px; font-weight:bold; color:var(--primary-dark); font-size: 17px; letter-spacing:1px;">云朵里好像有什么要钻出来了...</p>
+</div>
+
+<!-- 4. 结果页 -->
+<div id="page-result" class="container">
+    <div class="res-header">
+        <div class="res-subtitle" style="letter-spacing: 1px;">YOUR CAT ARCHETYPE</div>
+        <h2 class="res-title bounce-in" style="animation-delay: 0.1s;" id="res-name">...</h2>
+        
+        <!-- 新增的结果图片，加入了加载失败时的在线占位图处理，方便预览排版 -->
+        <img id="res-image" class="res-image bounce-in" style="animation-delay: 0.15s;" src="" alt="猫咪人格卡片" onerror="this.src='https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&h=500&fit=crop'; this.onerror=null; this.style.border='4px dashed #ffb5b5'; this.title='这只是一张临时的预览占位图哦';">
+        
+        <div class="res-quote bounce-in" style="animation-delay: 0.2s;" id="res-slogan">...</div>
+        <div class="res-tags bounce-in" style="animation-delay: 0.3s;" id="res-tags"></div>
+    </div>
+
+    <!-- 模块1：性格鉴定 -->
+    <div class="card fade-in" style="animation-delay: 0.4s;">
+        <div class="card-title">✨ 灵魂鉴定报告</div>
+        <div class="desc-text" id="res-desc"></div>
+    </div>
+
+    <!-- 模块2：喵星图鉴 (科普版块) -->
+    <div class="card fade-in" style="animation-delay: 0.45s;">
+        <div class="card-title">📖 专属喵星图鉴</div>
+        <div class="lore-text" id="res-lore"></div>
+    </div>
+    
+    <!-- 模块3：雷达图 -->
+    <div class="card fade-in" style="animation-delay: 0.5s; padding-bottom: 40px; margin-bottom: 30px;">
+        <div class="card-title">📊 喵星属性面板</div>
+        <div class="radar-container">
+            <canvas id="radarChart" width="300" height="260" style="width:100%; max-width:320px; display:block; margin:0 auto;"></canvas>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin: 0 0 50px;">
+        <button class="btn-start" onclick="location.reload()">乘着扫帚，再测一次 🐾</button>
+    </div>
+</div>
+
+<script>
+/**
+ * 喵星人 5维算法：
+ * Dim 0 (社交): 独立高冷(0) vs 粘人社牛(1)
+ * Dim 1 (活力): 慵懒宅家(0) vs 活泼好动(1)
+ * Dim 2 (脾气): 温顺乖巧(0) vs 暴躁傲娇(1)
+ * Dim 3 (智商): 憨憨单细胞(0) vs 聪明好奇(1)
+ * Dim 4 (表达): 安静如鸡(0) vs 极度话痨(1)
+ */
+
+const archetypes = {
+    "00000": { 
+        name: "佛系躺平的英短蓝猫", image: "image/猫咪人格卡片_佛系-英短蓝猫.png", slogan: "能坐着绝不站着，万事皆空。", tags: ["情绪稳定", "大脸盘子", "独立思考"], 
+        desc: "你就像一只圆润的英短蓝猫。性格独立不粘人，对运动毫无兴趣，平时非常乖巧安静。你有点憨憨的，活在自己的小世界里，是最棒的“静态背景板”。",
+        lore: "英国短毛猫是世界上最古老的猫种之一，祖先曾跟随罗马人四处征战。它们拥有圆胖的体型、浓密的短毛和标志性的大圆脸，摸起来就像一团厚实柔软的云朵。性格极度平静、温婉，对人友善但并不喜欢被长时间抱在怀里。它们适应环境的能力极强，是极其省心且安静的伴侣宠物。"
+    },
+    "00001": { 
+        name: "高贵优雅的波斯猫", image: "image/猫咪人格卡片_高贵-波斯猫.png", slogan: "高贵的公主/王子，请不要碰乱我的毛。", tags: ["古典贵族", "偶尔碎碎念", "慵懒"], 
+        desc: "你自带古典贵族气质。绝大部分时间你都喜欢安静地趴着，温顺且反应慢半拍。虽然独立，但偶尔有什么不顺心的事情，你还是会忍不住哼唧几句表达不满。",
+        lore: "波斯猫被誉为“猫中王子与王妃”，是极具代表性的长毛猫品种。它们拥有华丽的长毛、扁平可爱的脸庞和甜美的表情。波斯猫的性格极其温文尔雅，比起上蹿下跳，它们更喜欢静静地趴在丝绒垫子上做高贵的旁观者。它们需要主人每天精心梳理毛发，那种骨子里透出的贵族气质，让所有人为之倾倒。"
+    },
+    "00010": { 
+        name: "外冷内热的俄罗斯蓝猫", image: "image/猫咪人格卡片_高冷-俄罗斯蓝猫.png", slogan: "保持优雅，保持神秘。", tags: ["神秘高冷", "观察者", "社恐"], 
+        desc: "你是只聪明内敛的俄罗斯蓝猫。你非常聪明，习惯默默观察周围的一切，但不爱出风头。你享受独处，安分守己，绝不轻易向不熟悉的人敞开心扉。",
+        lore: "俄罗斯蓝猫原产于寒冷的俄罗斯北部，相传曾是沙皇最爱的宠物。它们拥有纤细修长的体态和闪耀着银蓝色光泽的短毛，一双绿宝石般的眼睛深邃迷人。性格非常内敛、安静，面对陌生人时容易害羞。但一旦建立信任，它们就会变得极其忠诚贴心，总是在你身边默默陪伴。"
+    },
+    "00011": { 
+        name: "大智若愚的异国短毛猫", image: "image/猫咪人格卡片_憨厚-异国短毛猫.png", slogan: "发呆是门艺术，而我是艺术家。", tags: ["加菲猫本猫", "大智若愚", "小夹子"], 
+        desc: "你表面看起来憨厚慵懒，其实心里门儿清。虽然身体不想动，也喜欢有自己的空间，但你的表达欲很强，遇到有趣的事或委屈了，会一直跟亲密的人絮叨。",
+        lore: "异国短毛猫就是著名动漫角色“加菲猫”的原型。它们是人工繁育的品种，保留了波斯猫独特的扁脸和温和性格，但毛发变短，打理起来轻松许多。它们平时看似懒洋洋、慢吞吞，实则非常聪明机灵。虽然不爱剧烈运动，但喜欢用软糯的小夹子音和主人进行对话沟通。"
+    },
+    "00100": { 
+        name: "傲娇小公主的金吉拉", image: "image/猫咪人格卡片_傲娇-金吉拉.png", slogan: "好看就行了，还要我怎样？", tags: ["傲娇小公举", "花瓶担当", "脾气大"], 
+        desc: "你有着金吉拉般迷人的外表和傲娇的脾气。你不喜欢别人过多干涉你的生活，平时宅得出奇。虽然脑回路简单，但一旦惹你不高兴了，你的脾气可绝对不小。",
+        lore: "金吉拉猫是早期人工培育的波斯猫分支品种，以其犹如洋娃娃般精致的容貌著称。它们最显著的特点是毛尖带有特殊的颜色（如银色、金色），看起来毛茸茸且仙气飘飘。性格较为傲娇且自我，喜欢安静干净的环境，不太乐意被人强行抱弄，是个自带脾气的绝美“小花瓶”。"
+    },
+    "00101": { 
+        name: "骂骂咧咧的拿破仑矮脚猫", image: "image/猫咪人格卡片_嘴强-拿破仑矮脚猫.png", slogan: "腿短怎么了？不妨碍我骂你！", tags: ["底盘低", "嘴强王者", "独立"], 
+        desc: "你是一只腿短但气势足的小猫。你不爱运动，性格有些傲娇。虽然有时候显得有点憨，但非常爱表达，遇到不爽的事情直接开麦，是个可爱的“嘴强王者”。",
+        lore: "拿破仑猫（也叫小步舞曲猫）是由曼基康矮脚猫和波斯系猫咪繁育而来的新品种。它们完美结合了矮脚猫的无敌小短腿和波斯系猫咪甜美的大圆脸。虽然因为底盘低而不太擅长跳跃，但它们性格非常自信甚至有些小傲娇。如果不顺心意，它们可是会大声抗议的可爱话匣子。"
+    },
+    "00110": { 
+        name: "温柔巨兽的挪威森林猫", image: "image/猫咪人格卡片_温柔-挪威森林猫.png", slogan: "我的征途是星辰大海（但在梦里）。", tags: ["温柔巨兽", "高智商", "独立自由"], 
+        desc: "你有着森林之王的霸气，但其实只想在家里睡大觉。你智商很高，性格傲娇且极度需要私人空间。你不会随便发声，习惯用深邃的眼神凝视这个世界。",
+        lore: "挪威森林猫是起源于北欧的天然古老猫种，相传在北欧神话中，它们是拉动繁育女神战车的神兽。为了抵御严寒，它们拥有极其厚实防水的双层被毛和带有簇毛的耳朵。虽然外表充满野性与霸气，其实它们性格独立冷静，智商极高，不会无端乱叫，骨子里透着从容与高贵。"
+    },
+    "00111": { 
+        name: "看透一切的卡尔特猫", image: "image/猫咪人格卡片_聪明-卡尔特猫.png", slogan: "聪明如我，看透不说...偏要说！", tags: ["法国绅士", "聪明绝顶", "爱发表意见"], 
+        desc: "你有着法兰西绅士的独立和聪明。你不爱剧烈运动，脾气有一点点倔强。你对事物有敏锐的洞察力，并且非常乐意把你的高见分享（吐槽）给周围的人。",
+        lore: "卡尔特猫被誉为法国的国猫，历史上曾备受修道士和皇室贵族的喜爱。它们体型健壮，拥有一身美丽的蓝灰色防水短毛，嘴巴天然带有犹如蒙娜丽莎般神秘的微笑弧度。它们非常聪明，性格独立且极具洞察力，虽然不爱跑跳，但喜欢用清脆的叫声表达自己的想法。"
+    },
+    
+    "01000": { 
+        name: "镇宅辟邪的中华玄猫", image: "image/猫咪人格卡片_内敛-中华玄猫.png", slogan: "暗夜的精灵，默默守护你。", tags: ["运动健将", "玄学猫", "内向乖巧"], 
+        desc: "你就像神秘的中华玄猫，精力充沛但性格内敛。你不怎么粘人，脾气极好，偶尔显得有点单细胞。你像个安静的忍者，喜欢在暗中默默奔跑和守护家人。",
+        lore: "在中国古代文化中，全身乌黑的猫被称为“玄猫”，被视为能够镇宅辟邪、招财化煞的吉祥瑞兽。它们通常体态匀称，拥有极其优越的运动神经和捕猎能力。虽然外表看起来有些高冷神秘，但其实性格温和内敛，不爱乱叫，是极其忠诚且能够带来好运的暗夜精灵。"
+    },
+    "01001": { 
+        name: "甜美软萌的苏格兰折耳猫", image: "image/猫咪人格卡片_甜美-苏格兰折耳猫.png", slogan: "跑来跑去，只是为了多看你一眼。", tags: ["精灵耳", "小话匣子", "活泼好动"], 
+        desc: "你精力充沛，脾气温顺。虽然你不算特别聪明的类型，而且需要自己的空间，但你有一张停不下来的嘴，喜欢边玩边发出可爱的声音。",
+        lore: "苏格兰折耳猫以其向下折叠的小耳朵和圆滚滚的大眼睛闻名，看起来就像无辜的毛绒玩具。它们性格非常温顺好动，喜欢用小细嗓音与人沟通交流。但需要科普的是，折耳实际上是由一种先天性骨骼遗传缺陷导致的，这种猫咪往往伴随着终生的骨骼疼痛，因此许多国际组织呼吁停止繁育折耳猫。"
+    },
+    "01010": { 
+        name: "神勇无敌的四川简州猫", image: "image/猫咪人格卡片_实干-四川简州猫.png", slogan: "相传四耳，捕鼠神兵。", tags: ["本土神猫", "精明强干", "安静实干家"], 
+        desc: "你是巴蜀之地的捕鼠神兵。精力旺盛，非常聪明，脾气温顺好相处。你不需要依附于人，做事雷厉风行，不爱抱怨，是个独立且靠谱的实干派。",
+        lore: "四川简州猫是中国非常著名的本土猫咪，在明清时期甚至曾作为贡品进献给皇室。相传它们耳廓内多长了一重小耳朵（俗称“四耳”），因此听觉极其敏锐，是威震巴蜀的捕鼠神兵。它们生命力顽强，智商极高，独立而强悍，是中国田园猫中名副其实的“实干家”。"
+    },
+    "01011": { 
+        name: "狂野不羁的埃及猫", image: "image/猫咪人格卡片_狂野-埃及猫.png", slogan: "豹纹诱惑，野性与智慧并存。", tags: ["古老血统", "机敏灵动", "话多"], 
+        desc: "你有着猎豹般的活力和极高的智商。你喜欢独立自由的奔跑，对世界充满好奇。性格乖巧的同时，表达欲也很旺盛，喜欢和环境进行声音互动。",
+        lore: "埃及猫是唯一一种天然形成斑点花纹的家猫品种，被认为是古埃及神圣猫咪的后代。它们拥有极其发达的肌肉和修长的后腿，奔跑速度极快，宛如小型猎豹。它们对周围环境充满好奇，极其聪明且记忆力惊人。虽然性格独立自由，但特别爱发出丰富的声调来表达自己的见解。"
+    },
+    "01100": { 
+        name: "精神超前的中华奶牛猫", image: "image/猫咪人格卡片_神经-中华奶牛猫.png", slogan: "猫中二哈，神经病人思路广。", tags: ["本土二哈", "拆家小能手", "不按套路出牌"], 
+        desc: "你的精神状态极其超前！作为“猫中二哈”，你精力无限，脾气有点神经质的傲娇，做事常常不过脑子。你不粘人也不爱瞎叫，通常都在闷声干大事（比如拆家）。",
+        lore: "奶牛猫并不是一个正式的品种，而是指黑白双色的田园猫（主要指面部呈现“正八字”的猫咪）。它们被网友戏称为“猫中哈士奇”和“神经病”。奶牛猫通常精力过剩，经常做出各种反牛顿定律和匪夷所思的搞笑举动。它们性格有些神经质，上一秒还在安静发呆，下一秒可能就开始满屋子跑酷拆家了。"
+    },
+    "01101": { 
+        name: "精力无限的孟加拉豹猫", image: "image/猫咪人格卡片_野性-孟加拉豹猫.png", slogan: "狂野男孩/女孩，在线发疯。", tags: ["野性难驯", "暴脾气", "精力狂魔"], 
+        desc: "你内心充满野性！超级好动，脾气傲娇不好惹，思考方式直接且单细胞。你极度需要自由，且表达欲爆棚，想要什么会直接大声宣告天下。",
+        lore: "孟加拉豹猫是由亚洲豹猫与家猫杂交繁育而成的绝美品种。它们身上布满了如野生豹子般绚丽的玫瑰斑纹，浑身散发着狂野的魅力。它们拥有近乎无限的精力，需要极大的活动空间，甚至和许多猫不同，它们极其喜欢玩水。脾气带有几分野性的傲娇，需求强烈且绝不憋着不说。"
+    },
+    "01110": { 
+        name: "丛林霸主的中华狸花猫", image: "image/猫咪人格卡片_高冷-中华狸花猫.png", slogan: "丛林法则的顶级掠食者。", tags: ["国猫之光", "高智商捕手", "高冷傲娇"], 
+        desc: "你是最纯粹的猎手中华狸花猫。独立、敏捷、聪明到了极点。你有着极强的领地意识和一点野性傲娇的脾气，深谙生存法则，做事干净利落，从不多废话。",
+        lore: "中华狸花猫是中国本土自然演化出来的品种，经过了千百年的自然淘汰，基因极其稳定。它们曾获得CFA（国际爱猫联合会）的正式认可。狸花猫拥有漂亮清晰的虎斑纹，身体结实健康。它们极其聪明，生存和捕猎能力处于猫界顶端，性格高冷傲娇，对领地有绝对的掌控欲。"
+    },
+    "01111": { 
+        name: "气场全开的萨凡纳猫", image: "image/猫咪人格卡片_王者-萨凡纳猫.png", slogan: "我不是猫，我是小猎豹。", tags: ["土豪专属", "智力天花板", "王者风范"], 
+        desc: "你拥有极高的智商、无穷的精力和高傲的脾气。你不屑于做个温顺的宠物，你有自己的思想，并且极其乐于表达你的观点，是个气场两米八的狠角色。",
+        lore: "萨凡纳猫（热带草原猫）是由非洲薮猫与家猫杂交而来的高端品种，体型巨大，四肢极度修长。它们弹跳力惊人，可以原地跃起两米多高。由于带有野生薮猫的血统，它们智商奇高，可以学会像狗一样寻回物品。它们性格高傲霸气，并且喜欢发出奇特的叫声，是名副其实的猫中王者。"
+    },
+    
+    "10000": { 
+        name: "绝美仙女的布偶猫", image: "image/猫咪人格卡片_仙女-布偶猫.png", slogan: "除了美貌和粘人，我什么都不会哦。", tags: ["仙女本仙", "倒地碰瓷", "纯傻白甜"], 
+        desc: "你是当之无愧的“仙女/王子”。你极度粘人，脾气好到没底线，怎么rua都不会生气。你不爱动，脑回路极其简单，安静且乖巧，完美的情绪价值提供者。",
+        lore: "布偶猫是体型最大的家猫品种之一，因其被抱起时像软绵绵的布偶一样毫无反抗而得名。它们拥有犹如星空般湛蓝的眼睛和华丽浓密的被毛。布偶猫的性格极度温顺、粘人且没有防御性，痛觉似乎也比一般猫咪迟钝。它们是纯粹的“傻白甜”，非常适合作为室内陪伴宠物。"
+    },
+    "10001": { 
+        name: "元气满满的曼基康矮脚猫", image: "image/猫咪人格卡片_元气-曼基康矮脚猫.png", slogan: "只要我跑得够快，你就不知道我腿短。", tags: ["柯基猫", "甜心宝贝", "小话痨"], 
+        desc: "你极度粘人，脾气超好，虽然有点憨憨的且不爱剧烈运动，但你超级喜欢和人互动！你有一张小碎嘴，喜欢通过喵喵叫来吸引别人的注意力。",
+        lore: "曼基康猫是猫界的“柯基”，它们极短的四肢是天然基因突变的结果，并非人工强行致畸。虽然腿短，但它们的速度和灵活性并不差，转弯极其迅速。曼基康性格非常开朗、友善，极度渴望人类的陪伴。它们经常会像土拨鼠一样直立起上半身来张望，是个非常爱撒娇的小话痨。"
+    },
+    "10010": { 
+        name: "治愈暖心的伯曼猫", image: "image/猫咪人格卡片_治愈-伯曼猫.png", slogan: "戴着白手套的温柔使者。", tags: ["贴心小棉袄", "高智商", "安静陪伴"], 
+        desc: "你聪明又温柔。你喜欢跟在亲密的人身边，脾气极好且非常宅。你能敏锐地察觉到别人的情绪，但选择用安静的陪伴代替喧哗，是极其暖心的存在。",
+        lore: "伯曼猫又称“缅甸神猫”，相传曾是缅甸寺庙里僧侣的伴侣。它们最显著的特征是四只脚上仿佛戴着洁白的“手套”，以及深邃的蓝眼睛。伯曼猫极其聪明且感情丰富，能敏锐感知主人的情绪变化。它们非常恋家和粘人，但又不像其他猫那样吵闹，只喜欢用默默贴贴的方式提供安慰。"
+    },
+    "10011": { 
+        name: "狗系粘人的缅甸猫", image: "image/猫咪人格卡片_狗系-缅甸猫.png", slogan: "社交悍匪，人类的贴身挂件。", tags: ["狗系猫咪", "聪明绝顶", "爱聊天"], 
+        desc: "你是一只彻头彻尾的“狗系猫咪”。超级粘人，智商极高，虽然运动量不大但对周围环境充满好奇。你非常爱和人聊天，甚至能听懂别人的话并给予回应。",
+        lore: "缅甸猫拥有犹如丝绸般光滑的短毛，被誉为被毛质感最好的猫咪之一。它们是著名的“狗系猫咪”，极其亲人，渴望参与主人生活中的每一件事。它们智商奇高，可以学会玩接球游戏，甚至学会开门。最有趣的是，它们有着非常强烈的沟通欲望，会用丰富的声调跟人“聊天”。"
+    },
+    "10100": { 
+        name: "心宽体胖的中华大橘猫", image: "image/猫咪人格卡片_慵懒-中华大橘猫.png", slogan: "十个橘猫九个胖，还有一个在路上。", tags: ["干饭王", "本土胖子", "有点小脾气"], 
+        desc: "大局为重！你非常粘人（通常是为了骗吃骗喝），因为太胖所以极其慵懒。脑子全用在干饭上了，平时有点傲娇的小脾气，吃饱了就很安静。",
+        lore: "“橘猫”同样不是品种，而是对带有橘色毛发猫咪的统称。科学研究表明，橘色基因往往伴随着极好的胃口和吸收能力，这就是“十个橘猫九个胖”的科学依据。大橘们大多性格随和亲人，人生最大的爱好就是干饭和睡觉。虽然有时候会为了抢食耍点小脾气，但在食物面前一切都好说。"
+    },
+    "10101": { 
+        name: "仙气飘飘的临清狮子猫", image: "image/猫咪人格卡片_仙气-临清狮子猫.png", slogan: "中华神猫，绝美且脾气大。", tags: ["异瞳仙子", "傲娇挂件", "爱碎碎念"], 
+        desc: "作为纯正的中国本土美猫，你不仅长得仙气飘飘，而且非常喜欢粘着特定的人。你不太爱动，但有点傲娇的臭脾气。虽然平时看起来憨憨的，但如果不顺心，抱怨起来可是一套一套的。",
+        lore: "临清狮子猫起源于中国山东临清，是由波斯猫与当地田园猫杂交繁育出的著名本土长毛猫。它们拥有雪白长毛，颈部毛发尤为浓密，酷似小狮子。其中以拥有“一黄一蓝”异色瞳的白猫最为珍贵。它们性格带有些许傲娇，认主性很强，特别喜欢对信任的人碎碎念撒娇。"
+    },
+    "10110": { 
+        name: "霸道总裁的缅因猫", image: "image/猫咪人格卡片_霸总-缅因猫.png", slogan: "外表猛虎，内心小公主。", tags: ["温柔巨兽", "反差萌", "聪明沉稳"], 
+        desc: "你有着令人震撼的反差萌！外表霸气傲娇，其实内心超级粘人且温柔。你智商很高，行动迟缓从容，非常安静，是给人满满安全感的“大姐大/老大哥”。",
+        lore: "缅因猫原产于美国缅因州，是北美最古老的天然长毛猫品种。它们体型巨大，有些甚至能长到一米长，外表犹如威风凛凛的小狮子。但与霸气外表形成剧烈反差的是，缅因猫被公认为“温柔的巨人”。它们性格极其平和、忠诚且聪明，非常喜欢粘着主人，而且几乎不会大声喊叫，只会发出轻柔的鸟鸣般的声音。"
+    },
+    "10111": { 
+        name: "反差话痨的西伯利亚森林猫", image: "image/猫咪人格卡片_话痨-西伯利亚森林猫.png", slogan: "雪地里的霸总，只对你一人撒娇。", tags: ["防寒王者", "聪明傲娇", "反差话痨"], 
+        desc: "你表面是个霸总，其实是个粘人精。你智商极高，虽然偏宅，但性格傲娇得很。最反差的是，面对信任的人，你会变成一个彻底的话痨，疯狂输出你的爱意。",
+        lore: "西伯利亚森林猫是俄罗斯的国猫，能够在极其严寒的气候下生存。它们拥有极其浓密的三层被毛，脖子上的“围脖”显得非常霸气。值得一提的是，它们的唾液中引发人类过敏的蛋白含量极低，是少数对过敏人群友好的天然品种。它们聪明、强壮，对陌生人高冷，但对主人极其依恋且话多。"
+    },
+    
+    "11000": { 
+        name: "宛如小狗的斯芬克斯无毛猫", image: "image/猫咪人格卡片_憨憨-斯芬克斯无毛猫.png", slogan: "长得像外星人，性格像小狗。", tags: ["手感极佳", "运动健将", "毫无心机"], 
+        desc: "你精力极度旺盛，超级粘人且脾气极好。你像个单纯的小孩（憨憨的），对世界充满善意。虽然活泼，但你并不爱乱叫，喜欢用实际行动（蹭蹭）来表达爱。",
+        lore: "斯芬克斯猫（加拿大无毛猫）是天然基因突变的产物，专为对猫毛过敏的人繁育。其实它们并非完全无毛，皮肤上覆盖着一层极细微的胎毛，摸起来就像温热的水蜜桃。因为缺乏毛发保护，它们极其怕冷怕晒，而且需要经常洗澡去油。它们性格无比亲人、活泼，完全没有防备心，宛如一只披着猫皮的小狗。"
+    },
+    "11001": { 
+        name: "快乐精灵的德文卷毛猫", image: "image/猫咪人格卡片_活泼-德文卷毛猫.png", slogan: "卷毛小精灵，一刻也停不下来。", tags: ["卷毛小狗", "淘气包", "极度话痨"], 
+        desc: "你像只披着羊毛的小精灵。超级好动、超级粘人、脾气极好！你的想法很简单直接，但你的嘴巴一刻也闲不住，喜欢边跑边叫，是个开心果。",
+        lore: "德文卷毛猫拥有大大的耳朵和犹如波浪般卷曲的短毛，长相酷似科幻片里的外星小精灵。它们的被毛几乎不掉毛，极其好打理。德文猫的性格异常活泼、顽皮，是个永远长不大的淘气包。它们极度渴望主人的关注，不仅喜欢爬到主人的肩膀上，还会用不断的喵喵叫来寻求互动。"
+    },
+    "11010": { 
+        name: "察言观色的中华三花猫", image: "image/猫咪人格卡片_高情商-中华三花猫.png", slogan: "带来好运的本土三色招财猫。", tags: ["高情商", "本土招财", "安静运动"], 
+        desc: "你拥有极高的情商和智商。你喜欢时刻粘着亲近的人玩耍，脾气很好。你是个行动派，解决问题雷厉风行，不爱多费口舌，能敏锐地察觉周围人的情绪。",
+        lore: "三花猫是指身上带有黑、红（橘）、白三种颜色的田园猫。因为决定毛色的基因位于X染色体上，所以绝大多数（约99.9%）的三花猫都是母猫。三色公猫极其罕见，因此在日本等地被视为能够招财纳福的幸运象征。三花猫通常非常聪明、独立且极其通人性，是高情商的代表。"
+    },
+    "11011": { 
+        name: "聪明粘糊的东方短毛猫", image: "image/猫咪人格卡片_粘人-东方短毛猫.png", slogan: "大耳朵图图，聪明又黏糊。", tags: ["大耳朵", "极度聪明", "猫中女高音"], 
+        desc: "你精力充沛，超级聪明且极其粘人！你对万事万物都充满好奇，脾气温顺。最重要的是，你是个绝世话痨，会用各种音调和人对话，仿佛身体里住着个小人儿。",
+        lore: "东方短毛猫是暹罗猫的近亲，但毛色极其丰富，没有重点色限制。它们长着一张极为独特的倒三角形小脸和一对夸张的大耳朵，身躯骨感修长。它们的精力和好奇心如同永动机一般，对家里的一切都要探究到底。作为绝对的“猫中女高音”，它们有着永不疲倦的表达欲，非常粘人。"
+    },
+    "11100": { 
+        name: "狡黠可爱的索马里猫", image: "image/猫咪人格卡片_狡黠-索马里猫.png", slogan: "长着狐狸尾巴的粘人精。", tags: ["小狐狸", "精力旺盛", "有点小脾气"], 
+        desc: "你就像一只狡黠的小狐狸。精力无限，非常粘人，但性格带点傲娇的小脾气。虽然脑回路有时候比较单细胞，但你是个安静的运动健将，默默吸引所有人的目光。",
+        lore: "索马里猫其实就是著名古老品种“阿比西尼亚猫”的长毛版本。它们拥有像狐狸一样蓬松飘逸的大尾巴和一双大大的杏仁眼，毛发颜色渐变非常美丽。它们生性好动，弹跳力极强，喜欢在家里四处攀爬。虽然非常喜欢粘着主人，但也带有些许倔强的小脾气，是不容忽视的可爱存在。"
+    },
+    "11101": { 
+        name: "脾气捉摸不定的中华玳瑁猫", image: "image/猫咪人格卡片_特立独行-中华玳瑁猫.png", slogan: "天生的酷女孩，特立独行。", tags: ["玳瑁脾气", "傲娇活泼", "碎碎念"], 
+        desc: "你就是传说中拥有“玳瑁脾气”的小公主！喜欢粘着别人但又死要面子（傲娇）。你做事往往凭直觉，表达欲极其旺盛，一边满屋子跑一边还要骂骂咧咧。",
+        lore: "玳瑁猫和三花猫一样，几乎全是母猫。它们的毛色杂乱交织在一起，如同珍贵的玳瑁海龟壳。在猫圈中有一个著名的词叫“玳瑁脾气（Tortitude）”，形容它们性格极其独特：非常聪明但也极其傲娇、脾气阴晴不定、特立独行。它们精力旺盛，极其爱碎碎念，绝对是家里最有个性的酷女孩。"
+    },
+    "11110": { 
+        name: "腹黑迷人的重点色短毛猫", image: "image/猫咪人格卡片_腹黑-重点色短毛猫.png", slogan: "聪明的坏心眼，粘人的小妖精。", tags: ["腹黑", "高智商运动", "傲娇"], 
+        desc: "你是个迷人的“小妖精”。精力充沛，智商极高，非常粘人但脾气极其傲娇。你擅长用行动和智商碾压别人，高冷地完成一切，不屑于多费口舌。",
+        lore: "重点色短毛猫是暹罗猫与美国短毛猫等品种杂交培育而来的，它们保留了暹罗猫“脸黑、耳黑、四肢黑”的重点色特征，但颜色选择（如红色、奶油色、山猫纹）更加丰富。它们智商极高，身手极其敏捷，喜欢用高智商去破解主人的玩具和门锁。性格傲娇且占有欲强，是个不折不扣的迷人小妖精。"
+    },
+    "11111": { 
+        name: "作精交际花的暹罗猫", image: "image/猫咪人格卡片_傲娇-暹罗猫.png", slogan: "“看我！理我！否则我就把家拆了！”", tags: ["挖煤工", "心眼子多", "超强扩音器"], 
+        desc: "恭喜！你是猫界名副其实的“作精交际花”。你精力旺盛、智商超群（心眼子极多）、脾气巨大还超级粘人！一旦被冷落，你会开启无敌碎碎念+拆家模式。拥有你，生活绝对精彩刺激！",
+        lore: "暹罗猫是举世闻名的泰国贵族猫，被戏称为“挖煤工”，因为它们体内的酪氨酸酶在低温下才起作用，所以天气越冷或年龄越大，脸和四肢就会变得越黑。它们是猫界的“社交悍匪”，精力极其恐怖，智商天花板，且拥有穿透力极强的洪亮嗓音。极其粘人且嫉妒心极强，养了它绝不会有片刻安宁！"
+    }
+};
+
+const questions = [
+    // Dim 0: 社交 (独立 0 vs 粘人 1) -> 主题：云朵、星星、魔法陪伴
+    { text: "1. 如果你能拥有一朵专属的软糖云朵，你希望它是？", dim: 0, opts: [
+        { t: "独自飘浮在山顶，只做我一个人的秘密基地", v: 0 },
+        { t: "偶尔能载着懂我的朋友一起去兜风", v: 0.5 },
+        { t: "变成超大双人床，时刻和最爱的人贴贴打滚", v: 1 }
+    ]},
+    { text: "2. 当你不开心，眼泪变成了一颗会发光的星星，你会？", dim: 0, opts: [
+        { t: "把它藏进心愿瓶里，自己默默守护它的微光", v: 0 },
+        { t: "放在窗边，等风把它吹给懂我的人", v: 0.5 },
+        { t: "立刻捧着它去找最亲近的人，要抱抱才能充好电", v: 1 }
+    ]},
+    { text: "3. 误入一场魔法森林的晚舞会，你的出场方式是？", dim: 0, opts: [
+        { t: "躲在树影里，边吃浆果边看着大家跳舞", v: 0 },
+        { t: "带着礼貌的微笑，偶尔接住精灵丢来的花环", v: 0.5 },
+        { t: "直接闪亮登场，拉着小动物们转圈圈，成为派对焦点！", v: 1 }
+    ]},
+    { text: "4. 如果有一个可爱的读心魔法阵，你愿意和谁共享？", dim: 0, opts: [
+        { t: "达咩！再喜欢的人也要有绝对的个人结界", v: 0 },
+        { t: "犹豫一下，只在特定的频道开放接收", v: 0.5 },
+        { t: "毫无保留！恨不得把我的奇思妙想全部塞进对方脑子里", v: 1 }
+    ]},
+
+    // Dim 1: 活力 (慵懒 0 vs 好动 1) -> 主题：奇妙天气、魔法旅行、魔药熬制
+    { text: "5. 如果今天下起了粉红色的棉花糖雨，你会？", dim: 1, opts: [
+        { t: "太棒了！这是在被窝里睡懒觉、做甜梦的最佳天气", v: 0 },
+        { t: "趴在窗边，用小勺子接一点尝尝味道", v: 0.5 },
+        { t: "冲出门外疯狂转圈，在棉花糖堆里打个滚！", v: 1 }
+    ]},
+    { text: "6. 要开启一段奇幻旅行，你会选择的交通工具是？", dim: 1, opts: [
+        { t: "慢悠悠的热气球，最好能铺满软垫让我躺着看风景", v: 0 },
+        { t: "会自动寻路的独角兽，不快不慢刚刚好", v: 0.5 },
+        { t: "会喷火的魔法滑板，风驰电掣地在星河里穿梭！", v: 1 }
+    ]},
+    { text: "7. 面对一本复杂的魔法药水熬制指南，你的态度是？", dim: 1, opts: [
+        { t: "看着好累哦，不如先睡个午觉，梦里什么都有", v: 0 },
+        { t: "准备好材料，照着步骤一步一步慢慢熬", v: 0.5 },
+        { t: "斗志燃起来了！一口气把所有材料丢进去，大干一场！", v: 1 }
+    ]},
+    { text: "8. 桌子边缘有一颗摇摇欲坠的魔法水晶，你会？", dim: 1, opts: [
+        { t: "看一眼，只要砸不到我，就继续悠哉地趴着", v: 0 },
+        { t: "凑过去闻一闻，用小爪子轻轻碰一下", v: 0.5 },
+        { t: "毫不犹豫！一爪子把它扒拉下去，听水晶碎裂的清脆声响！", v: 1 }
+    ]},
+
+    // Dim 2: 脾气 (温顺 0 vs 傲娇 1) -> 主题：小恶作剧、萌物互动、光环颜色
+    { text: "9. 淘气的小精灵对你恶作剧，把你的头发变成了蒲公英：", dim: 2, opts: [
+        { t: "觉得还挺可爱的，温柔地笑笑不生气", v: 0 },
+        { t: "表面上气鼓鼓，心里其实觉得蛮有趣的", v: 0.5 },
+        { t: "立刻抽出魔法棒对轰，我才不会吃亏呢，哼！", v: 1 }
+    ]},
+    { text: "10. 遇到一只刚破壳的、超萌的小火龙宝宝，你会怎么对它？", dim: 2, opts: [
+        { t: "小心翼翼地把它抱在怀里，唱摇篮曲哄它睡觉", v: 0 },
+        { t: "摸摸它的头，给它喂点零食，保持安全的距离", v: 0.5 },
+        { t: "疯狂揉捏它胖嘟嘟的脸颊，谁叫它长得这么好欺负！", v: 1 }
+    ]},
+    { text: "11. 组队打怪时，你的骑士队友笨手笨脚总是绊倒：", dim: 2, opts: [
+        { t: "叹口气，默默给他套上治愈光环，帮他打掩护", v: 0 },
+        { t: "委婉地提醒他要小心，不然就不带他玩了", v: 0.5 },
+        { t: "直接抢过他的剑：“起开起开，看本小姐/少爷的！”", v: 1 }
+    ]},
+    { text: "12. 你觉得自己的灵魂散发着什么样的光环？", dim: 2, opts: [
+        { t: "软绵绵的治愈白光，像一颗散发甜味的奶糖", v: 0 },
+        { t: "淡淡的星光色，情绪稳定，有一点点清冷", v: 0.5 },
+        { t: "闪烁着噼里啪啦的小火花，有点小脾气，傲娇又迷人", v: 1 }
+    ]},
+
+    // Dim 3: 智商/好奇心 (憨憨 0 vs 聪明 1) -> 主题：禁忌宝箱、精灵迷宫、古老咒语
+    { text: "13. 森林深处有个缠满玫瑰的宝箱，写着“打开会有奇奇怪怪的后果”：", dim: 3, opts: [
+        { t: "听话最安全，绕着走，假装没看见", v: 0 },
+        { t: "犹豫着绕箱子转了八百圈，最后还是作罢", v: 0.5 },
+        { t: "好奇心彻底爆炸，管他什么后果，先开了再说！", v: 1 }
+    ]},
+    { text: "14. 迷失在爱丽丝的疯帽子迷宫里，你通常是？", dim: 3, opts: [
+        { t: "迷糊担当，跟着前面的人走，脑子里在想晚上吃什么", v: 0 },
+        { t: "偶尔能发现墙角发光的小蘑菇线索", v: 0.5 },
+        { t: "逻辑全开的侦探，三下五除二破解机关，带飞全场", v: 1 }
+    ]},
+    { text: "15. 得到了一张写满古老精灵语的神秘羊皮纸：", dim: 3, opts: [
+        { t: "看不懂，叠成纸飞机飞走啦，不费那个脑细胞", v: 0 },
+        { t: "靠着上面画的图案，随便猜猜里面讲了什么童话", v: 0.5 },
+        { t: "立刻翻遍魔法图书馆，必须要把它一字不落地翻译出来！", v: 1 }
+    ]},
+    { text: "16. 在充满奇遇的魔法日常里，你觉得自己是：", dim: 3, opts: [
+        { t: "经常迷路撞树的单细胞生物，靠运气和可爱活蹦乱跳", v: 0 },
+        { t: "大部分时间能分清东南西北，偶尔犯点小迷糊", v: 0.5 },
+        { t: "细节控和大脑图鉴库，谁也别想轻易用幻术骗倒我", v: 1 }
+    ]},
+
+    // Dim 4: 表达欲 (安静 0 vs 话痨 1) -> 主题：水晶球群聊、宝石分享、魔法信件
+    { text: "17. 在链接着全魔法村落的水晶球群聊里，你是？", dim: 4, opts: [
+        { t: "隐身的小透明，常年潜水看大家施法", v: 0 },
+        { t: "偶尔飘过，丢几个可爱的魔法表情包", v: 0.5 },
+        { t: "刷屏小能手，每天用语音弹幕轰炸全场的聊天霸主", v: 1 }
+    ]},
+    { text: "18. 捡到了一颗会唱歌的绝世宝石，开心到冒泡的你会：", dim: 4, opts: [
+        { t: "悄悄藏在枕头底下，一个人在被窝里偷笑回味", v: 0 },
+        { t: "拍张好看的照片，发到手账本里记录一下", v: 0.5 },
+        { t: "变成快乐复读机，满世界敲门：“快看快看！我捡到了什么！”", v: 1 }
+    ]},
+    { text: "19. 当某个讨厌鬼惹你不开心了，你的反应是：", dim: 4, opts: [
+        { t: "一个人缩在角落生闷气，画个圈圈诅咒他", v: 0 },
+        { t: "用别扭的小动作暗示他：“本宝宝现在很不爽”", v: 0.5 },
+        { t: "直接一串连珠炮法术怼过去，不吐不快，绝对不憋着！", v: 1 }
+    ]},
+    { text: "20. 你平时写信给好朋友的风格通常是：", dim: 4, opts: [
+        { t: "极简风，能用一个标点符号绝不多写一个字", v: 0 },
+        { t: "正常的叙事，有事说事，偶尔加个颜文字", v: 0.5 },
+        { t: "满纸的彩虹屁、感叹号和“哈哈哈哈哈啊啊啊啊”，废话连篇但超有爱！", v: 1 }
+    ]}
+];
+
+// 状态管理
+let currentQ = 0;
+// 5个维度的得分 [D0, D1, D2, D3, D4]
+let scores = [0, 0, 0, 0, 0];
+let historyStack = []; 
+
+function startTest() {
+    document.getElementById('page-intro').style.display = 'none';
+    document.getElementById('page-test').style.display = 'flex';
+    currentQ = 0;
+    scores = [0, 0, 0, 0, 0];
+    historyStack = [];
+    renderQ();
+}
+
+function renderQ() {
+    const q = questions[currentQ];
+    
+    // 进度
+    const progress = ((currentQ + 1) / 20) * 100;
+    document.getElementById('progress-bar').style.width = progress + '%';
+    document.getElementById('q-counter').innerText = (currentQ + 1);
+
+    // 动画
+    const qBox = document.getElementById('q-box');
+    qBox.style.animation = 'none';
+    void qBox.offsetWidth; 
+    qBox.style.animation = 'fadeIn 0.5s ease-out forwards';
+
+    document.getElementById('q-text').innerText = q.text;
+    
+    const optList = document.getElementById('opt-list');
+    optList.innerHTML = '';
+    
+    q.opts.forEach((opt) => {
+        const btn = document.createElement('div');
+        btn.className = 'opt-btn';
+        btn.innerHTML = `<span>${opt.t}</span> <span class="opt-icon">🐾</span>`;
+        btn.onclick = () => handleAnswer(q.dim, opt.v);
+        optList.appendChild(btn);
+    });
+
+    document.getElementById('btn-back').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+}
+
+function handleAnswer(dim, val) {
+    historyStack.push({ dim: dim, val: val });
+    scores[dim] += val;
+
+    if (currentQ < 19) {
+        currentQ++;
+        setTimeout(renderQ, 150);
+    } else {
+        showLoading();
+    }
+}
+
+function prevQ() {
+    if (currentQ > 0 && historyStack.length > 0) {
+        const lastAction = historyStack.pop();
+        scores[lastAction.dim] -= lastAction.val;
+        currentQ--;
+        renderQ();
+    }
+}
+
+function showLoading() {
+    document.getElementById('page-test').style.display = 'none';
+    document.getElementById('page-loading').style.display = 'flex';
+    
+    // 延迟一点点触发猫咪钻出来的动画，让云朵先飘一下
+    setTimeout(() => {
+        document.getElementById('magic-cat').classList.add('pop-out');
+        document.getElementById('magic-stars').classList.add('twinkle');
+    }, 600);
+
+    // 动画表演完成后，进入结果页
+    setTimeout(calcResult, 3000);
+}
+
+function calcResult() {
+    // 阈值：得分 > 2 为 1, <= 2 为 0
+    let binaryCode = "";
+    for(let i=0; i<5; i++) {
+        binaryCode += scores[i] > 2 ? "1" : "0";
+    }
+
+    const res = archetypes[binaryCode];
+    if(!res) {
+        alert("喵星信号中断，请重试"); 
+        location.reload();
+        return;
+    }
+
+    renderResult(res, scores);
+}
+
+function renderResult(res, finalScores) {
+    document.getElementById('page-loading').style.display = 'none';
+    document.getElementById('page-result').style.display = 'block';
+
+    // 设置并显示对应的人格图片
+    const resImage = document.getElementById('res-image');
+    resImage.src = res.image;
+    // 重置display，以防之前触发了onerror被隐藏
+    resImage.style.display = 'block';
+
+    document.getElementById('res-name').innerText = res.name;
+    document.getElementById('res-slogan').innerText = `“ ${res.slogan} ”`;
+    document.getElementById('res-desc').innerText = res.desc;
+    document.getElementById('res-lore').innerText = res.lore; // 新增注入科普文本
+
+    const tagBox = document.getElementById('res-tags');
+    tagBox.innerHTML = res.tags.map(t => `<span class="tag"># ${t}</span>`).join('');
+
+    setTimeout(() => { drawRadar(finalScores); }, 200);
+}
+
+function drawRadar(rawScores) {
+    const canvas = document.getElementById('radarChart');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    const cx = w / 2;
+    const cy = h / 2 + 10;
+    const r = Math.min(w, h) / 3.4; // 缩小雷达图比例，留出边缘文字空间
+    const sides = 5;
+
+    // 5轴标签
+    const labels = ["粘人度", "运动量", "傲娇值", "好奇心", "表达欲"];
+    // 归一化得分 0-4 映射到 0.15 - 1 (防止画成一个点)
+    const values = rawScores.map(s => 0.15 + (s / 4) * 0.85); 
+
+    // 1. 绘制雷达网格 (柔和背景)
+    ctx.strokeStyle = '#fce4ec';
+    ctx.lineWidth = 1.5;
+    for(let i=1; i<=4; i++) {
+        ctx.beginPath();
+        for(let j=0; j<sides; j++) {
+            const angle = (Math.PI*2/sides)*j - Math.PI/2;
+            const radius = (r/4)*i;
+            if(j==0) ctx.moveTo(cx + Math.cos(angle)*radius, cy + Math.sin(angle)*radius);
+            else ctx.lineTo(cx + Math.cos(angle)*radius, cy + Math.sin(angle)*radius);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        
+        // 填充间隔色
+        if(i % 2 !== 0) {
+            ctx.fillStyle = 'rgba(248, 177, 149, 0.05)';
+            ctx.fill();
+        }
+    }
+
+    // 绘制轴线
+    ctx.strokeStyle = '#fce4ec';
+    ctx.beginPath();
+    for(let j=0; j<sides; j++) {
+        const angle = (Math.PI*2/sides)*j - Math.PI/2;
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(angle)*r, cy + Math.sin(angle)*r);
+    }
+    ctx.stroke();
+
+    // 2. 绘制数据区域 (马卡龙粉)
+    ctx.beginPath();
+    for(let j=0; j<sides; j++) {
+        const angle = (Math.PI*2/sides)*j - Math.PI/2;
+        const val = values[j]; 
+        ctx.lineTo(cx + Math.cos(angle)*r*val, cy + Math.sin(angle)*r*val);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(246, 114, 128, 0.4)'; // 半透明粉红
+    ctx.fill();
+    ctx.strokeStyle = '#f67280';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // 数据节点画小圆点
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#f67280';
+    ctx.lineWidth = 2;
+    for(let j=0; j<sides; j++) {
+        const angle = (Math.PI*2/sides)*j - Math.PI/2;
+        const val = values[j];
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(angle)*r*val, cy + Math.sin(angle)*r*val, 4, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // 3. 绘制标签文字
+    ctx.fillStyle = '#5d5d5a';
+    ctx.font = 'bold 13px "Nunito", sans-serif'; 
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    for(let j=0; j<sides; j++) {
+        const angle = (Math.PI*2/sides)*j - Math.PI/2;
+        const dist = r + 28; // 增加文字距离，防止与雷达图重叠
+        ctx.fillText(labels[j], cx + Math.cos(angle)*dist, cy + Math.sin(angle)*dist);
+    }
+}
+</script>
+<!-- 
+  =======================================================
+  🔒 网页防伪提示锁 (米大师定制版) - 移动端完美适配版
+  使用说明：
+  1. 修改 MAX_USES 为限制的次数（默认6次）。
+  2. 将代码粘贴到网页文件的 </body> 标签之前。
+  =======================================================
+-->
+
+<style>
+    /* 锁屏界面样式 */
+    #gate-modal {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: #ffffff;
+        z-index: 2147483647;
+        display: flex; flex-direction: column; 
+        /* 【修复 1】移除 justify-content: center; 改为允许垂直滚动 */
+        overflow-y: auto; 
+        padding: 40px 20px; /* 增加上下 padding 防止贴边 */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+        transition: opacity 0.5s;
+    }
+    
+    .gate-card {
+        background: #fff; width: 100%; max-width: 340px; padding: 40px 30px;
+        border-radius: 24px; 
+        box-shadow: 0 15px 50px rgba(0,0,0,0.08); text-align: center;
+        border: 1px solid #fff5f7; 
+        /* 【修复 2】使用 margin: auto 进行安全的垂直居中。屏幕太小时会自动顶对齐并允许滚动 */
+        margin: auto;
+        position: relative;
+        overflow: hidden;
+        /* 【修复 3】严格控制盒模型，防止 padding 撑破容器 */
+        box-sizing: border-box; 
+    }
+    
+    /* 视图切换容器 */
+    .view-container {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        animation: fadeIn 0.4s ease;
+        width: 100%;
+    }
+    .view-container.active {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 头像样式 */
+    .avatar-wrapper {
+        width: 80px; height: 80px;
+        background: #ffe6eb; 
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 42px;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 15px rgba(255, 36, 66, 0.15);
+    }
+
+    .brand-tag {
+        display: inline-block;
+        background: #f8f8f8;
+        color: #999;
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+    }
+    
+    .gate-title { font-size: 20px; font-weight: 800; color: #333; margin-bottom: 12px; line-height: 1.4; }
+    
+    .gate-desc { 
+        font-size: 14px; color: #666; margin-bottom: 25px; 
+        line-height: 1.6; 
+    }
+
+    /* 按钮样式 */
+    .action-btn {
+        width: 100%; padding: 15px; border-radius: 50px; 
+        font-size: 15px; font-weight: bold; cursor: pointer; 
+        transition: all 0.2s; margin-bottom: 12px;
+        border: none; outline: none;
+        /* 【修复 4】确保按钮自身尺寸计算包含 padding */
+        box-sizing: border-box;
+        display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+        line-height: 1.4;
+    }
+    .action-btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+        background: linear-gradient(90deg, #ff2442, #ff5e75);
+        color: white; 
+        box-shadow: 0 4px 15px rgba(255, 36, 66, 0.3);
+    }
+    .btn-secondary {
+        background: #f5f5f5;
+        color: #666;
+    }
+    .btn-secondary:hover { background: #eeeeee; }
+
+    .gate-err { 
+        color: #ff2442; font-size: 13px; margin-top: 5px; height: 18px; 
+        opacity: 0; transition: opacity 0.3s; font-weight: 600; 
+    }
+    
+    .loading-layer {
+        position: absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.98);
+        display: none; flex-direction: column;
+        align-items: center; justify-content: center; z-index: 10;
+    }
+    .spinner {
+        width: 32px; height: 32px; border: 3px solid #ffe6eb;
+        border-top: 3px solid #ff2442; border-radius: 50%;
+        animation: spin 1s linear infinite; margin-bottom: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+</style>
+
+<div id="gate-modal">
+    <div class="gate-card" id="main-card">
+        
+        <!-- ================= 视图1：防伪提问 ================= -->
+        <div class="view-container active" id="view-question">
+            <div class="avatar-wrapper" style="background: #f0f7ff; box-shadow: 0 4px 15px rgba(36, 131, 255, 0.15);">🐱</div>
+            <div class="gate-title">温馨提示</div>
+            <div class="gate-desc" style="color: #333; font-weight: 500;">
+                为了保障您的体验<br>请问您购买本测试的店铺是<br><span style="color:#ff2442; font-weight:bold; font-size:16px;">“心理米大师的店”</span> 吗？
+            </div>
+            
+            <button class="action-btn btn-primary" onclick="switchView('view-cover')">
+                对，确认无误，就是<span style="font-size: 18px; font-weight: 900; color: #ffe895; text-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-left: 4px;">心理米大师</span>
+            </button>
+            <button class="action-btn btn-secondary" onclick="switchView('view-warning')">
+                好像不是，可能是别的店铺
+            </button>
+        </div>
+
+        <!-- ================= 视图2：正版欢迎页 ================= -->
+        <div class="view-container" id="view-cover">
+            <div class="avatar-wrapper">😻</div>
+            <div class="gate-title">米大师的私密测试空间</div>
+            <div class="brand-tag">@心理米大师 · 专注高质量心理测试</div>
+            
+            <div class="gate-desc">
+                Hi 宝子 👋<br>
+                <strong style="color:#ff2442;">请认准心理米大师</strong><br>
+                小店所有测试都是本人亲自制作<br>
+                欢迎宝子们进店选购 ✨
+            </div>
+            
+            <button class="action-btn btn-primary" onclick="unlockPage()">✨ 开启专属测试 ✨</button>
+            <div class="gate-err" id="gate-msg"></div>
+            
+            <!-- 剩余次数提示 -->
+            <div style="margin-top:10px; font-size:11px; color:#bbb;" id="limit-hint"></div>
+        </div>
+
+        <!-- ================= 视图3：盗版提示页 ================= -->
+        <div class="view-container" id="view-warning">
+            <div class="avatar-wrapper" style="background: #fff0f0;">😿</div>
+            <div class="gate-title">好像遇到盗版了...</div>
+            
+            <div class="gate-desc" style="text-align: left;">
+                麻烦宝子仔细确认一下，如果店铺名称确实不叫<strong style="color:#ff2442;">心理米大师</strong>，麻烦您帮我举报一下哦！<br><br>
+                如果可以私信告诉我，那就更好啦，非常感谢你的支持和正义感 ❤️
+            </div>
+            
+            <button class="action-btn btn-secondary" onclick="switchView('view-question')">返回重新选择</button>
+        </div>
+
+        <!-- 动画层 -->
+        <div class="loading-layer" id="load-layer">
+            <div class="spinner"></div>
+            <div style="font-size:13px; color:#333; font-weight:bold;" id="load-text">正在加载...</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ================= 配置区域 =================
+    const MAX_USES = 6;                // 同一台设备限制的次数
+    // ==========================================
+
+    const pageId = window.location.pathname; // 区分不同页面的缓存
+    const usageKey = 'usage_count_' + pageId; // 本地存储Key
+
+    // 1. 检查Session（本次会话是否已解锁）
+    if (sessionStorage.getItem('unlocked_' + pageId)) {
+        document.getElementById('gate-modal').style.display = 'none';
+    }
+
+    // 2. 初始化显示剩余次数
+    function updateLimitUI() {
+        let currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+        let remaining = Math.max(0, MAX_USES - currentUsage);
+        document.getElementById('limit-hint').innerText = `本设备剩余可用次数：${remaining}次`;
+    }
+    updateLimitUI();
+
+    // 3. 切换视图功能
+    function switchView(viewId) {
+        document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    // 4. 解锁页面功能
+    function unlockPage() {
+        const msg = document.getElementById('gate-msg');
+        let usedCount = parseInt(localStorage.getItem(usageKey) || '0');
+        
+        // 检查次数
+        if (usedCount >= MAX_USES) {
+            msg.innerText = `宝子，本设备的测试次数已用完啦 (${MAX_USES}/${MAX_USES})`;
+            msg.style.opacity = 1;
+            shakeCard();
+            return;
+        }
+
+        // --- 验证通过 ---
+        msg.style.opacity = 0;
+        
+        // 1. 扣除次数
+        localStorage.setItem(usageKey, usedCount + 1);
+        
+        // 2. 播放动画
+        document.getElementById('load-layer').style.display = 'flex';
+        const txt = document.getElementById('load-text');
+        
+        setTimeout(() => { txt.innerText = "正在加载专属报告..."; }, 800);
+        setTimeout(() => { 
+            let left = MAX_USES - (usedCount + 1);
+            txt.innerText = `加载成功！(剩余${left}次)`; 
+            txt.style.color = "#ff2442"; 
+        }, 1500);
+        
+        // 3. 解锁页面
+        setTimeout(() => {
+            sessionStorage.setItem('unlocked_' + pageId, 'true');
+            document.getElementById('gate-modal').style.opacity = 0;
+            setTimeout(() => { 
+                document.getElementById('gate-modal').style.display = 'none'; 
+            }, 500);
+        }, 2500);
+    }
+
+    // 震动动画
+    function shakeCard() {
+        const card = document.getElementById('main-card');
+        card.style.animation = 'shake 0.3s';
+        setTimeout(() => { card.style.animation = ''; }, 300);
+    }
+</script>
+</body>
+</html>
